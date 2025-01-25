@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS - Slot Machine Simulator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Itim&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Itim&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        *{
+            font-family: Prompt, sans-serif;
+        }
+        body {
+            animation: fadeIn 1.2s forwards;
+            text-align: center;
+            background-color: #222;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px;
+        }
+        .slot {
+            width: 100px;
+            height: 100px;
+            background-color: #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        .slot .symbol {
+            position: absolute;
+            animation: spin 1s linear infinite;
+        }
+        .spin-button {
+            margin-top:5px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .spin-button:hover {
+            background-color: #218838;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 1.5rem;
+        }
+        .speed-control, .bet-control {
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+        @keyframes spin {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-600%); }
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0;,transform:translateY(-100vh); }
+            100% { opacity: 1;,transform:translateY(0); }
+        }
+        footer{
+            background-color: #444;
+            padding:10px;
+            position:fixed;
+            bottom:0%;
+            width: 100%;
+        }
+        .nav{
+            background-color: #444;
+            padding:10px;
+            position:fixed;
+            top:0%;
+            width: 100%;
+        }
+        .nav .logo{
+            Font-Size:200%;
+            background: -webkit-linear-gradient(#a2790d, 	#ebd197);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: "Bebas Neue", serif;
+            transition:0.2s;
+        }
+        .nav .logo:hover{
+            scale:1.3;,
+            transform:translateX(360deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <div class="logo">Joy888</div>
+    </div>
+    <h1 style='margin:0px;'>7️⃣ Slot Machine 🎰</h1>
+    <h5 style='color:#999;'>Simulator !</h5>
+    <div class="slot-machine">
+        <div class="slot" id="slot1"><div class="symbol">🍒</div></div>
+        <div class="slot" id="slot2"><div class="symbol">🍋</div></div>
+        <div class="slot" id="slot3"><div class="symbol">🍊</div></div>
+        <div class="slot" id="slot4"><div class="symbol">🍇</div></div>
+        <div class="slot" id="slot5"><div class="symbol">⭐</div></div>
+    </div>
+    <div class="bet-control">
+        <label for="bet">เดิมพัน: </label>
+        <input type="number" id="bet" min="1" value="10"> points
+    </div>
+    <button class="spin-button" onclick="spin()">Spin</button>
+    <div class="speed-control">
+        <label for="speed">เร่งความเร็ว: </label>
+        <input type="range" id="speed" min="0.5" max="5" step="0.1" value="1" oninput="updateSpeed(this.value)"> x<span id="speed-value">1.0</span>
+    </div>
+    <div class="message" id="message"></div>
+    <div class="balance">ยอดคงเหลือ: <span id="balance">100</span> points</div>
+
+    <script>
+        const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "🔔"];
+        const payouts = {
+            "🍒": 2,
+            "🍋": 3,
+            "🍊": 5,
+            "🍇": 10,
+            "⭐": 20,
+            "🔔": 50
+        };
+        let animationSpeed = 1;
+        let balance = 100;
+
+        function updateSpeed(value) {
+            animationSpeed = value;
+            document.getElementById("speed-value").textContent = value;
+        }
+
+        function spin() {
+            const betAmount = parseInt(document.getElementById("bet").value);
+            const message = document.getElementById("message");
+            const balanceDisplay = document.getElementById("balance");
+
+            if (betAmount > balance || betAmount <= 0) {
+                message.textContent = "ใส่Pointก่อน!";
+                return;
+            }
+
+            balance -= betAmount;
+            balanceDisplay.textContent = balance;
+            message.textContent = "นี้แหละๆ...";
+
+            const slots = ["slot1", "slot2", "slot3", "slot4", "slot5"];
+            const results = [];
+
+            slots.forEach(slotId => {
+                const slot = document.getElementById(slotId);
+                const symbol = slot.querySelector(".symbol");
+
+                // Reset animation
+                symbol.style.animation = "none";
+                void symbol.offsetWidth; // Trigger reflow to restart animation
+                symbol.style.animation = `spin ${1 / animationSpeed}s linear infinite`;
+
+                // Randomly select a symbol after animation ends
+                setTimeout(() => {
+                    const result = symbols[Math.floor(Math.random() * symbols.length)];
+                    symbol.style.animation = "none";
+                    symbol.textContent = result;
+                    results.push(result);
+
+                    if (results.length === slots.length) {
+                        checkWin(results, betAmount);
+                    }
+                }, 1000 / animationSpeed);
+            });
+        }
+
+        function checkWin(results, betAmount) {
+            const message = document.getElementById("message");
+            const balanceDisplay = document.getElementById("balance");
+
+            const counts = results.reduce((acc, symbol) => {
+                acc[symbol] = (acc[symbol] || 0) + 1;
+                return acc;
+            }, {});
+
+            let maxCount = 0;
+            let winningSymbol = null;
+
+            for (const symbol in counts) {
+                if (counts[symbol] > maxCount) {
+                    maxCount = counts[symbol];
+                    winningSymbol = symbol;
+                }
+            }
+
+            if (maxCount >= 3) {
+                const reward = payouts[winningSymbol] * maxCount * betAmount;
+                balance += reward;
+                balanceDisplay.textContent = balance;
+                message.textContent = `🎉 "เอาดีเฮีย" ${reward} points โดย ${winningSymbol}! 🎉`;
+            } else {
+                message.textContent = "แก้ด่วน! แบบนี้ต้องแก้";
+            }
+        }
+    </script>
+
+    <footer>
+        <h4>ไม่สนับสนุนการเล่นพนันทุกชนิด เว็บไซต์นี้จัดทำเพื่อความบันเทิงเท่านั้น</h4>
+    </footer>
+</body>
+</html>
